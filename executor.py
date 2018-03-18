@@ -54,17 +54,14 @@ def get_loss(params):
     iterations, learning_rate, hidden_nodes = params
     N_i = train_features.shape[1]
     network = NeuralNetwork(N_i, hidden_nodes, 1, learning_rate)
-    loss_values = []
     
-    for ii in range(iterations + 1):
+    for ii in range(iterations):
         batch = np.random.choice(train_features.index, size=128)
         X, y = train_features.ix[batch].values, train_targets.ix[batch]['cnt']
           
         network.train(X, y)
-        if ii % 100 == 0 and ii > 0:
-          loss_values.append(MSE(network.run(val_features).T, val_targets['cnt'].values))
-
-    return loss_values
+    
+    return MSE(network.run(val_features).T, val_targets['cnt'].values)
 
 
 def check_losses(iterations, learning_rate, hidden_nodes, pool, repeat=1):
@@ -77,29 +74,60 @@ if __name__ == '__main__':
   start = time.time()
   total_iterations = 0
 
-  iterations = 3000
-  node_range = np.arange(4, 13, 1)
-  lr_range = np.linspace(0.4, 2.4, 21)
-  trials = 24
-  print('for {} trials of {} iterations:'.format(trials, iterations))
+  for iterations in range(500, 3000, 500):
+    node_range = np.arange(4, 11, 1)
+    lr_range = np.linspace(0.4, 2.4, 21)
+    trials = 24
+    print('for {} trials of {} iterations:'.format(trials, iterations))
 
-  print()
-  print('final loss: ')
-  print('lr\t' + '\t'.join('{:4}'.format(n) for n in node_range))
+    validations = []
+    run_times = []
 
-  with open('runs.csv', 'a') as outfile:
+    print()
+    print('arithmetic means: ')
+    print('lr\t' + '\t'.join('{:4}'.format(n) for n in node_range))
+
     for learning_rate in lr_range:
       print('{:0.3f}'.format(learning_rate), end='\t')
+      row_timings = []
+      row_validations = []
       for hidden_nodes in node_range:
         total_iterations += iterations * trials
-        losses = check_losses(iterations, learning_rate, hidden_nodes, pool, trials)
-        title = '{}, {}, '.format(learning_rate, hidden_nodes)
-        for trial in losses:
-          outfile.write(title + ', '.join(str(l) for l in trial) + '\n')
-        avg = np.mean(np.array(losses), axis=0)[-1]
-        print('{:0.4f}'.format(avg), end='\t')
+        start_run = time.time()
+        validate = check_losses(iterations, learning_rate, hidden_nodes, pool, trials)
+        row_validations.append(validate)
+        row_timings.append(time.time() - start_run)
+        print('{:0.4f}'.format(np.mean(validate)), end='\t')
         sys.stdout.flush()
-      print('{:0.2f}m'.format((time.time() - start)/60))
+      run_times.append(row_timings)
+      validations.append(row_validations)
+      print()
+        #stats_of(validate, '{} nodes at {:0.2f}'.format(hidden_nodes, learning_rate))
+
+    print()
+    print('standard deviations: ')
+    print('lr\t' + '\t'.join('{:4}'.format(n) for n in node_range))
+    for learning_rate, vs_row in zip(lr_range, validations):
+      print('{:0.3f}'.format(learning_rate), end='\t')
+      for hidden_nodes, vs in zip(node_range, vs_row):
+        print('{:0.4f}'.format(np.std(vs)), end='\t')
+      print()
+
+    print()
+    print('medians: ')
+    print('lr\t' + '\t'.join('{:4}'.format(n) for n in node_range))
+    for learning_rate, vs_row in zip(lr_range, validations):
+      print('{:0.3f}'.format(learning_rate), end='\t')
+      for hidden_nodes, vs in zip(node_range, vs_row):
+        print('{:0.4f}'.format(np.median(vs)), end='\t')
+      print()
+
+    print()
+    print('seconds / 1000 iterations: ')
+    print('\t'.join('{:4}'.format(n) for n in node_range))
+    for rt in np.mean(np.array(run_times), axis=0):
+      print('{:0.4f}'.format(1000 * rt / (trials * iterations)), end='\t')
+    print()
 
   print()
   duration = time.time() - start
