@@ -125,20 +125,7 @@ class NeuralNetwork(object):
 #########################################################
 # Set your hyperparameters here
 ##########################################################
-iterations = 1500
-learning_rate = 1.2
-hidden_nodes = 8
+iterations = 2000
+learning_rate = 0.95
+hidden_nodes = 12
 output_nodes = 1
-
-# 2000 / 0.5 / 12 start 4:08 -> finished <4:33, 
-# Training loss: 0.162 ... Validation loss: 0.320
-# loss actually descending faster at 2000 than from 1000-1500
-
-# 2500 / 0.8 / 15 13.3% @ 4:39
-# Training loss: 0.070 ... Validation loss: 0.166
-# again
-# 41.2% 0.176 / 0.328
-
-# 2000 / 0.8 / 15 -> 0.158
-
-# 2000 / 0.8 / 14 -> 0.149
