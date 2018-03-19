@@ -78,9 +78,9 @@ if __name__ == '__main__':
   total_iterations = 0
 
   iterations = 3000
-  node_range = np.arange(10, 13, 1)
-  lr_range = np.linspace(0.7, 1.0, 16)
-  trials = 16
+  node_range = np.arange(5, 15, 1)
+  lr_range = np.linspace(0.8, 1.4, 21)
+  trials = 32
   print('for {} trials of {} iterations:'.format(trials, iterations))
 
   print()
